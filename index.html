@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德固達雅賽德克語動詞變化查詢系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .header-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+        }
+        .search-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        .verb-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .verb-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+        .verb-header {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .conjugation-item {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
+        }
+        .conjugation-item:hover {
+            background-color: #f8f9fa;
+        }
+        .conjugation-item:last-child {
+            border-bottom: none;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            width: 80px;
+            display: inline-block;
+        }
+        .form-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        .search-input {
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1.5rem;
+        }
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .search-input:focus {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+        .btn-search {
+            border-radius: 25px;
+            padding: 0.8rem 2rem;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-search:hover {
+            background: white;
+            color: #667eea;
+        }
+        .result-count {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bg">
+        <div class="container">
+            <div class="text-center">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-language me-3"></i>
+                    德固達雅賽德克語動詞變化查詢系統
+                </h1>
+                <p class="lead">Tgdaya Seediq Verb Conjugation System</p>
+            </div>
+            
+            <div class="search-container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" id="searchInput" class="form-control search-input" 
+                                   placeholder="請輸入中文或族語進行搜尋...">
+                            <button class="btn btn-search" type="button" onclick="searchVerbs()">
+                                <i class="fas fa-search me-2"></i>搜尋
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div id="resultCount" class="result-count d-none"></div>
+        <div id="disclaimer" class="alert alert-warning d-none" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>注意：</strong>本搜尋結果僅供參考
+        </div>
+        <div id="results" class="row"></div>
+        <div id="noResults" class="no-results d-none">
+            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+            <h4>未找到相關結果</h4>
+            <p>請嘗試使用其他關鍵字搜尋</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let verbData = [];
+        
+        // 載入CSV數據
+        async function loadVerbData() {
+            try {
+                const response = await fetch('data.csv');
+                const text = await response.text();
+                const lines = text.split('\n');
+                
+                verbData = lines.slice(1).map(line => {
+                    const columns = parseCSVLine(line);
+                    if (columns.length >= 4 && columns[0] && columns[2]) {
+                        return {
+                            chinese: columns[0],
+                            dictionary: columns[1],
+                            base1: columns[2],
+                            base2: columns[3]
+                        };
+                    }
+                    return null;
+                }).filter(item => item !== null);
+                
+                console.log('載入了', verbData.length, '個動詞');
+            } catch (error) {
+                console.error('載入數據失敗:', error);
+            }
+        }
+        
+        // 解析CSV行（處理逗號分隔）
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+        
+        // 動詞變化規則
+        function generateConjugations(verb) {
+            const base1 = verb.base1;
+            const base2 = verb.base2 ? verb.base2.replace('-', '') : '';
+            
+            return {
+                root: base1,
+                mForm: generateMForm(base1),
+                unForm: generateUnForm(base2),
+                anForm: generateAnForm(base2),
+                sForm: generateSForm(base1),
+                iForm: generateIForm(base2),
+                chinese: verb.chinese
+            };
+        }
+        
+        // M-形變化
+        function generateMForm(base) {
+            if (!base) return '';
+            
+            const firstChar = base[0].toLowerCase();
+            
+            // 母音開頭
+            if ('aeiou'.includes(firstChar)) {
+                return 'm' + base;
+            }
+            // 唇音開頭 - 替換首字母為 m
+            else if ('pb'.includes(firstChar)) {
+                return 'm' + base.substring(1);
+            }
+            // 其他子音開頭 - 在第一個子音後插入 m
+            else {
+                return base[0] + 'm' + base.substring(1);
+            }
+        }
+        
+        // -un形變化
+        function generateUnForm(base) {
+            if (!base) return '';
+            
+            if (base.endsWith('i')) {
+                return base + 'yun';
+            }
+            return base + 'un';
+        }
+        
+        // -an形變化
+        function generateAnForm(base) {
+            if (!base) return '';
+            
+            if (base.endsWith('i')) {
+                return base + 'yan';
+            } else if (base.endsWith('u')) {
+                return base + 'wan';
+            } else if (base.endsWith('e')) {
+                return base + 'yan';
+            }
+            return base + 'an';
+        }
+        
+        // s-形變化
+        function generateSForm(base) {
+            if (!base) return '';
+            
+            const firstChar = base[0].toLowerCase();
+            
+            // 母音開頭
+            if ('aeiou'.includes(firstChar)) {
+                return 's' + firstChar + base;
+            }
+            // 其他子音開頭
+            return 's' + base;
+        }
+        
+        // -i形變化
+        function generateIForm(base) {
+            if (!base) return '';
+            return base + 'i';
+        }
+        
+        // 搜尋功能
+        function searchVerbs() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const resultsContainer = document.getElementById('results');
+            const noResults = document.getElementById('noResults');
+            const resultCount = document.getElementById('resultCount');
+            const disclaimer = document.getElementById('disclaimer');
+            
+            if (!query) {
+                resultsContainer.innerHTML = '';
+                noResults.classList.add('d-none');
+                resultCount.classList.add('d-none');
+                disclaimer.classList.add('d-none');
+                return;
+            }
+            
+            const filteredVerbs = verbData.filter(verb => 
+                verb.chinese.toLowerCase().includes(query) ||
+                verb.dictionary.toLowerCase().includes(query) ||
+                verb.base1.toLowerCase().includes(query) ||
+                (verb.base2 && verb.base2.toLowerCase().includes(query))
+            );
+            
+            if (filteredVerbs.length === 0) {
+                resultsContainer.innerHTML = '';
+                noResults.classList.remove('d-none');
+                resultCount.classList.add('d-none');
+                disclaimer.classList.add('d-none');
+            } else {
+                noResults.classList.add('d-none');
+                resultCount.textContent = `找到 ${filteredVerbs.length} 個結果`;
+                resultCount.classList.remove('d-none');
+                disclaimer.classList.remove('d-none');
+                displayResults(filteredVerbs);
+            }
+        }
+        
+        // 顯示搜尋結果
+        function displayResults(verbs) {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+            
+            verbs.forEach(verb => {
+                const conjugations = generateConjugations(verb);
+                const card = createVerbCard(conjugations);
+                resultsContainer.appendChild(card);
+            });
+        }
+        
+        // 建立動詞卡片
+        function createVerbCard(conjugations) {
+            const col = document.createElement('div');
+            col.className = 'col-lg-6 col-xl-4 mb-4';
+            
+            col.innerHTML = `
+                <div class="card verb-card h-100">
+                    <div class="verb-header">
+                        <h5 class="mb-1">${conjugations.chinese}</h5>
+                        <small class="opacity-75">${conjugations.root}</small>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="conjugation-item">
+                            <span class="form-label">原形：</span>
+                            <span class="form-value">${conjugations.root}</span>
+                        </div>
+                        <div class="conjugation-item">
+                            <span class="form-label">m-形：</span>
+                            <span class="form-value">${conjugations.mForm}</span>
+                        </div>
+                        <div class="conjugation-item">
+                            <span class="form-label">-un形：</span>
+                            <span class="form-value">${conjugations.unForm}</span>
+                        </div>
+                        <div class="conjugation-item">
+                            <span class="form-label">-an形：</span>
+                            <span class="form-value">${conjugations.anForm}</span>
+                        </div>
+                        <div class="conjugation-item">
+                            <span class="form-label">s-形：</span>
+                            <span class="form-value">${conjugations.sForm}</span>
+                        </div>
+                        <div class="conjugation-item">
+                            <span class="form-label">-i形：</span>
+                            <span class="form-value">${conjugations.iForm}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return col;
+        }
+        
+        // 按Enter鍵搜尋
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchVerbs();
+            }
+        });
+        
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVerbData();
+        });
+    </script>
+</body>
+</html> 
