@@ -99,6 +99,7 @@
             font-size: 0.9rem;
             margin-bottom: 1rem;
         }
+
     </style>
 </head>
 <body>
@@ -193,18 +194,32 @@
             return result;
         }
         
+        // 檢查是否包含問號，如果包含則只顯示問號
+        function handleQuestionMark(text) {
+            if (!text) return '';
+            return text.includes('?') ? '?' : text;
+        }
+        
         // 動詞變化規則
         function generateConjugations(verb) {
             const base1 = verb.base1;
             const base2 = verb.base2 ? verb.base2.replace('-', '') : '';
             
+            // 檢查原始資料是否包含問號
+            const rootForm = handleQuestionMark(base1);
+            const mForm = base1.includes('?') ? '?' : generateMForm(base1);
+            const unForm = (verb.base2 && verb.base2.includes('?')) ? '?' : generateUnForm(base2);
+            const anForm = (verb.base2 && verb.base2.includes('?')) ? '?' : generateAnForm(base2);
+            const sForm = base1.includes('?') ? '?' : generateSForm(base1);
+            const iForm = (verb.base2 && verb.base2.includes('?')) ? '?' : generateIForm(base2);
+            
             return {
-                root: base1,
-                mForm: generateMForm(base1),
-                unForm: generateUnForm(base2),
-                anForm: generateAnForm(base2),
-                sForm: generateSForm(base1),
-                iForm: generateIForm(base2),
+                root: rootForm,
+                mForm: mForm,
+                unForm: unForm,
+                anForm: anForm,
+                sForm: sForm,
+                iForm: iForm,
                 chinese: verb.chinese
             };
         }
@@ -289,12 +304,24 @@
                 return;
             }
             
-            const filteredVerbs = verbData.filter(verb => 
-                verb.chinese.toLowerCase().includes(query) ||
-                verb.dictionary.toLowerCase().includes(query) ||
-                verb.base1.toLowerCase().includes(query) ||
-                (verb.base2 && verb.base2.toLowerCase().includes(query))
-            );
+            const filteredVerbs = verbData.filter(verb => {
+                // 搜尋原始欄位
+                if (verb.chinese.toLowerCase().includes(query) ||
+                    verb.dictionary.toLowerCase().includes(query) ||
+                    verb.base1.toLowerCase().includes(query) ||
+                    (verb.base2 && verb.base2.toLowerCase().includes(query))) {
+                    return true;
+                }
+                
+                // 搜尋變化形式
+                const conjugations = generateConjugations(verb);
+                return conjugations.root.toLowerCase().includes(query) ||
+                       conjugations.mForm.toLowerCase().includes(query) ||
+                       conjugations.unForm.toLowerCase().includes(query) ||
+                       conjugations.anForm.toLowerCase().includes(query) ||
+                       conjugations.sForm.toLowerCase().includes(query) ||
+                       conjugations.iForm.toLowerCase().includes(query);
+            });
             
             if (filteredVerbs.length === 0) {
                 resultsContainer.innerHTML = '';
