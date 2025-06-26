@@ -7,6 +7,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        html, body {
+            height: 100%;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+        }
+        
         .header-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -99,47 +112,67 @@
             font-size: 0.9rem;
             margin-bottom: 1rem;
         }
+        
+        footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 2rem 0;
+            margin-top: auto;
+            text-align: center;
+            color: #6c757d;
+        }
+        
+        footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
 
     </style>
 </head>
 <body>
-    <div class="header-bg">
-        <div class="container">
-            <div class="text-center">
-                <h1 class="display-4 fw-bold mb-3">
-                    <i class="fas fa-language me-3"></i>
-                    德固達雅賽德克語動詞變化查詢系統
-                </h1>
-                <p class="lead">Tgdaya Seediq Verb Conjugation System</p>
-            </div>
-            
-            <div class="search-container">
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-                        <div class="input-group">
-                            <input type="text" id="searchInput" class="form-control search-input" 
-                                   placeholder="請輸入中文或族語進行搜尋...">
-                            <button class="btn btn-search" type="button" onclick="searchVerbs()">
-                                <i class="fas fa-search me-2"></i>搜尋
-                            </button>
+    <div class="main-content">
+        <div class="header-bg">
+            <div class="container">
+                <div class="text-center">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-language me-3"></i>
+                        德固達雅賽德克語動詞變化查詢系統
+                    </h1>
+                    <p class="lead">Tgdaya Seediq Verb Conjugation System</p>
+                </div>
+                
+                <div class="search-container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control search-input" 
+                                       placeholder="請輸入中文或族語進行搜尋...">
+                                <button class="btn btn-search" type="button" onclick="searchVerbs()">
+                                    <i class="fas fa-search me-2"></i>搜尋
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="container my-5">
-        <div id="resultCount" class="result-count d-none"></div>
-        <div id="disclaimer" class="alert alert-warning d-none" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>注意：</strong>本搜尋結果僅供參考
-        </div>
-        <div id="results" class="row"></div>
-        <div id="noResults" class="no-results d-none">
-            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
-            <h4>未找到相關結果</h4>
-            <p>請嘗試使用其他關鍵字搜尋</p>
+        <div class="container my-5">
+            <div id="resultCount" class="result-count d-none"></div>
+            <div id="disclaimer" class="alert alert-warning d-none" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>注意：</strong>本搜尋結果僅供參考
+            </div>
+            <div id="results" class="row"></div>
+            <div id="noResults" class="no-results d-none">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <h4>未找到相關結果</h4>
+                <p>請嘗試使用其他關鍵字搜尋</p>
+            </div>
         </div>
     </div>
 
@@ -405,5 +438,14 @@
             loadVerbData();
         });
     </script>
+    
+    <footer>
+        <div class="container">
+            <p class="mb-0">
+                © 2024 <a href="https://walishcs.github.io" target="_blank">Walis Hian-chi Song</a>. 
+                德固達雅賽德克語動詞變化查詢系統
+            </p>
+        </div>
+    </footer>
 </body>
 </html> 
