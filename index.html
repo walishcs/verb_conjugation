@@ -206,7 +206,7 @@
             const base2 = verb.base2 ? verb.base2.replace('-', '') : '';
             
             // 檢查原始資料是否包含問號
-            const rootForm = handleQuestionMark(base1);
+            const rootForm = base1.includes('?') ? '?' : '<strong>' + base1 + '</strong>';
             const mForm = base1.includes('?') ? '?' : generateMForm(base1);
             const unForm = (verb.base2 && verb.base2.includes('?')) ? '?' : generateUnForm(base2);
             const anForm = (verb.base2 && verb.base2.includes('?')) ? '?' : generateAnForm(base2);
@@ -232,15 +232,15 @@
             
             // 母音開頭
             if ('aeiou'.includes(firstChar)) {
-                return 'm' + base;
+                return 'm<strong>' + base + '</strong>';
             }
             // 唇音開頭 - 替換首字母為 m
             else if ('pb'.includes(firstChar)) {
-                return 'm' + base.substring(1);
+                return 'm<strong>' + base.substring(1) + '</strong>';
             }
             // 其他子音開頭 - 在第一個子音後插入 m
             else {
-                return base[0] + 'm' + base.substring(1);
+                return '<strong>' + base[0] + '</strong>m<strong>' + base.substring(1) + '</strong>';
             }
         }
         
@@ -249,9 +249,9 @@
             if (!base) return '';
             
             if (base.endsWith('i')) {
-                return base + 'yun';
+                return '<strong>' + base + '</strong>yun';
             }
-            return base + 'un';
+            return '<strong>' + base + '</strong>un';
         }
         
         // -an形變化
@@ -259,13 +259,13 @@
             if (!base) return '';
             
             if (base.endsWith('i')) {
-                return base + 'yan';
+                return '<strong>' + base + '</strong>yan';
             } else if (base.endsWith('u')) {
-                return base + 'wan';
+                return '<strong>' + base + '</strong>wan';
             } else if (base.endsWith('e')) {
-                return base + 'yan';
+                return '<strong>' + base + '</strong>yan';
             }
-            return base + 'an';
+            return '<strong>' + base + '</strong>an';
         }
         
         // s-形變化
@@ -276,16 +276,16 @@
             
             // 母音開頭
             if ('aeiou'.includes(firstChar)) {
-                return 's' + firstChar + base;
+                return 's' + firstChar + '<strong>' + base + '</strong>';
             }
             // 其他子音開頭
-            return 's' + base;
+            return 's<strong>' + base + '</strong>';
         }
         
         // -i形變化
         function generateIForm(base) {
             if (!base) return '';
-            return base + 'i';
+            return '<strong>' + base + '</strong>i';
         }
         
         // 搜尋功能
@@ -313,14 +313,15 @@
                     return true;
                 }
                 
-                // 搜尋變化形式
+                // 搜尋變化形式（移除HTML標籤後搜尋）
                 const conjugations = generateConjugations(verb);
-                return conjugations.root.toLowerCase().includes(query) ||
-                       conjugations.mForm.toLowerCase().includes(query) ||
-                       conjugations.unForm.toLowerCase().includes(query) ||
-                       conjugations.anForm.toLowerCase().includes(query) ||
-                       conjugations.sForm.toLowerCase().includes(query) ||
-                       conjugations.iForm.toLowerCase().includes(query);
+                const stripHTML = (str) => str.replace(/<[^>]*>/g, '');
+                return stripHTML(conjugations.root).toLowerCase().includes(query) ||
+                       stripHTML(conjugations.mForm).toLowerCase().includes(query) ||
+                       stripHTML(conjugations.unForm).toLowerCase().includes(query) ||
+                       stripHTML(conjugations.anForm).toLowerCase().includes(query) ||
+                       stripHTML(conjugations.sForm).toLowerCase().includes(query) ||
+                       stripHTML(conjugations.iForm).toLowerCase().includes(query);
             });
             
             if (filteredVerbs.length === 0) {
